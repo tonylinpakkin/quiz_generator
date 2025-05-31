@@ -38,5 +38,5 @@ A local web application for generating quizzes from uploaded study materials usi
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/tonylinpakkin/quiz_generator
 cd quiz-generator
