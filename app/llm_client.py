@@ -1,7 +1,6 @@
-"""Remove mock mode fallback when Gemini fails."""
-"""
-Local LLM client for quiz generation
-Integrated with Ollama for real LLM calls
+"""Local LLM client for quiz generation.
+
+Integrated with Ollama for real LLM calls.
 """
 
 from typing import List, Optional, Dict, Any
