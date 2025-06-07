@@ -104,7 +104,6 @@ async def health_check():
 async def llm_status():
     """Check LLM integration status"""
     from app.llm_client import get_llm_client
-    from app.huggingface_client import get_huggingface_client
     from app.gemini_client import get_gemini_client
     
     client = get_llm_client()
@@ -140,30 +139,6 @@ async def llm_status():
                     "model": gemini_client.model_name
                 }
         except Exception as gemini_error:
-            pass  # Try Hugging Face as fallback
-    
-    # Check Hugging Face as fallback
-    if client.use_huggingface:
-        try:
-            hf_client = get_huggingface_client()
-            if hf_client.api_token:
-                await hf_client._check_hf_health()
-                return {
-                    "mode": "real",
-                    "status": "ready", 
-                    "message": f"Hugging Face is available with model {hf_client.model_name}",
-                    "provider": "huggingface",
-                    "model": hf_client.model_name
-                }
-            else:
-                return {
-                    "mode": "real",
-                    "status": "error",
-                    "message": "Hugging Face API token not provided",
-                    "provider": "huggingface",
-                    "model": hf_client.model_name
-                }
-        except Exception as hf_error:
             pass  # Try Ollama as fallback
     
     # Check Ollama as fallback
@@ -180,7 +155,7 @@ async def llm_status():
         return {
             "mode": "real",
             "status": "error",
-            "message": f"No AI services available. Gemini: token needed, Hugging Face: issues, Ollama: {str(e)}",
+            "message": f"No AI services available. Gemini: token needed, Ollama: {str(e)}",
             "provider": "none",
             "model": "none"
         }
