@@ -123,9 +123,27 @@ class FileParser:
             # Clean up the text
             text_content = FileParser._clean_text(text_content)
             word_count = len(text_content.split())
-            
+
             if not text_content.strip():
                 raise FileParsingError("No readable text found in PDF")
+
+            # Check if the extracted text looks like PDF metadata rather than
+            # actual content. We count how many lines start with common
+            # metadata labels such as "Title:", "Author:", "Creator:",
+            # "Producer:" or "CreationDate:".
+            lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+            metadata_pattern = re.compile(r'^(Title:|Author:|Creator:|Producer:|CreationDate:)')
+            metadata_label_lines = [line for line in lines if metadata_pattern.match(line)]
+
+            if lines:
+                metadata_ratio = len(metadata_label_lines) / len(lines)
+            else:
+                metadata_ratio = 0
+
+            if word_count < 20 or metadata_ratio > 0.5:
+                raise FileParsingError(
+                    "PDF appears to contain only metadata or no readable text"
+                )
             
             # Log the extracted content
             print("\n=== PDF Content Extraction Log ===")
