@@ -13,7 +13,6 @@ import os
 from app.models import QuizQuestion, QuestionType
 from app.huggingface_client import get_huggingface_client
 from app.gemini_client import get_gemini_client
-from app.groq_client import get_groq_client
 
 
 class LLMClientError(Exception):
@@ -31,7 +30,6 @@ class LocalLLMClient:
         self.mock_mode = os.getenv("LLM_MOCK_MODE", "false").lower() == "true"
         self.use_huggingface = os.getenv("USE_HUGGINGFACE", "true").lower() == "true"
         self.use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
-        self.use_groq = os.getenv("USE_GROQ", "true").lower() == "true"
 
     async def generate_quiz(self, text_content: str, num_questions: int = 5, 
                           question_types: Optional[List[QuestionType]] = None,
@@ -50,18 +48,6 @@ class LocalLLMClient:
             print(f"🎯 Using mock mode for quiz generation")
             return self._generate_mock_quiz(text_content, num_questions, question_types)
 
-        # Try Groq first if enabled (fastest)
-        if self.use_groq:
-            try:
-                groq_client = get_groq_client()
-                return await groq_client.generate_quiz(
-                    text_content, num_questions, question_types, difficulty_level, focus_topics
-                )
-            except Exception as groq_error:
-                print(f"⚠️ Groq failed: {groq_error}")
-                if not self.use_gemini and not self.use_huggingface:
-                    raise LLMClientError(f"Groq generation failed and no other providers are enabled: {groq_error}")
-                print(f"🔄 Trying Gemini as fallback...")
 
         # Try Gemini as fallback
         if self.use_gemini:
@@ -72,7 +58,9 @@ class LocalLLMClient:
                 )
             except Exception as gemini_error:
                 print(f"⚠️ Gemini failed: {gemini_error}")
-                raise LLMClientError("All AI services are currently unavailable. Groq hit rate limits and Gemini failed to generate questions. Please try again in a few moments.")
+                raise LLMClientError(
+                    "All AI services are currently unavailable. Gemini failed to generate questions. Please try again in a few moments."
+                )
 
         # Try Hugging Face as fallback
         if self.use_huggingface:
@@ -94,7 +82,9 @@ class LocalLLMClient:
             )
         except Exception as ollama_error:
             print(f"⚠️ Ollama not available: {ollama_error}")
-            raise LLMClientError("All AI services are currently unavailable (Groq hit rate limits, Gemini had parsing issues, Hugging Face and Ollama are not accessible). Please try again in a few moments or check your API configurations.")
+            raise LLMClientError(
+                "All AI services are currently unavailable (Gemini had parsing issues, Hugging Face and Ollama are not accessible). Please try again in a few moments or check your API configurations."
+            )
 
     async def _check_ollama_health(self) -> None:
         """Check if Ollama service is available and the model is accessible"""

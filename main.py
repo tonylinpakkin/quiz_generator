@@ -106,7 +106,6 @@ async def llm_status():
     from app.llm_client import get_llm_client
     from app.huggingface_client import get_huggingface_client
     from app.gemini_client import get_gemini_client
-    from app.groq_client import get_groq_client
     
     client = get_llm_client()
     
@@ -118,30 +117,6 @@ async def llm_status():
             "provider": "mock",
             "model": "Mock Generator"
         }
-    
-    # Check Groq first (fastest)
-    if client.use_groq:
-        try:
-            groq_client = get_groq_client()
-            if groq_client.api_token:
-                await groq_client._check_groq_health()
-                return {
-                    "mode": "real",
-                    "status": "ready", 
-                    "message": "AI is ready for quiz generation",
-                    "provider": "groq",
-                    "model": groq_client.model_name
-                }
-            else:
-                return {
-                    "mode": "real",
-                    "status": "error",
-                    "message": "Groq API key not provided",
-                    "provider": "groq",
-                    "model": groq_client.model_name
-                }
-        except Exception as groq_error:
-            pass  # Try Gemini as fallback
     
     # Check Gemini as fallback
     if client.use_gemini:
@@ -205,7 +180,7 @@ async def llm_status():
         return {
             "mode": "real",
             "status": "error",
-            "message": f"No AI services available. Groq: token needed, Gemini: token needed, Hugging Face: issues, Ollama: {str(e)}",
+            "message": f"No AI services available. Gemini: token needed, Hugging Face: issues, Ollama: {str(e)}",
             "provider": "none",
             "model": "none"
         }
@@ -220,7 +195,7 @@ class DirectQuizRequest(BaseModel):
     question_types: List[str] = ["multiple_choice"]
     difficulty_level: str = "medium"
     language: str = "english"
-    ai_service: str = "auto"  # auto, groq, gemini
+    ai_service: str = "auto"  # auto or gemini
 
 @app.post("/api/generate-quiz-direct")
 async def generate_quiz_direct(request: DirectQuizRequest):
@@ -239,10 +214,7 @@ async def generate_quiz_direct(request: DirectQuizRequest):
         question_types = [question_type_map.get(qt, QuestionType.MULTIPLE_CHOICE) for qt in request.question_types]
         
         # Select AI service based on user preference
-        if request.ai_service == "groq":
-            from app.groq_client import get_groq_client
-            ai_client = get_groq_client()
-        elif request.ai_service == "gemini":
+        if request.ai_service == "gemini":
             from app.gemini_client import get_gemini_client
             ai_client = get_gemini_client()
         else:  # auto mode
