@@ -77,9 +77,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerateQuiz = async () => {
+    if (!selectedFile) return;
     try {
       setIsLoading(true);
-      await onGenerateQuiz(selectedFile.file_id, quizOptions);
+      await onGenerateQuiz(selectedFile, quizOptions);
       setShowQuizOptions(false);
     } catch (error: any) {
       console.error("Failed to generate quiz:", error);
