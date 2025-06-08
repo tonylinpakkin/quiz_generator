@@ -2,6 +2,7 @@
 FastAPI main application entry point for Quiz Generator
 """
 import os
+import socket
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -229,7 +230,20 @@ async def startup_event():
     init_db()
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))  # Changed to port 5000
+    def find_available_port(start_port: int) -> int:
+        """Find the first available port starting from start_port."""
+        port = start_port
+        while True:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                if sock.connect_ex(("localhost", port)) != 0:
+                    return port
+            port += 1
+
+    start_port = int(os.getenv("PORT", 5000))  # Default to 5000
+    port = find_available_port(start_port)
+    if port != start_port:
+        print(f"Port {start_port} is in use, using {port} instead.")
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
