@@ -43,6 +43,7 @@ cd quiz_generator
 The project ships with a helper script that installs Python and Node dependencies, builds the frontend and prepares the environment:
 
 ```bash
+chmod +x setup.sh
 ./setup.sh
 ```
 
