@@ -312,4 +312,3 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
 };
 
 export default FileUpload;
-```
