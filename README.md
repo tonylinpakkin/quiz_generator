@@ -9,7 +9,6 @@ A local web application for generating quizzes from uploaded study materials usi
 - **Quiz Generation**: AI-powered quiz generation using local LLM
 - **Quiz Management**: View, edit, and organize your quizzes
 - **Interactive Quiz Taking**: Study mode and test mode with progress tracking
-- **Local LLM Ready**: Prepared for Ollama integration
 
 ## Tech Stack
 

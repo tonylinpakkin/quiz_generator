@@ -214,10 +214,7 @@ main() {
     echo
     echo "🚀 Next steps:"
     echo "1. Review and edit .env file if needed"
-    echo "2. For LLM integration, install and configure Ollama:"
-    echo "   - Install: curl -fsSL https://ollama.ai/install.sh | sh"
-    echo "   - Pull model: ollama pull mistral:7b-instruct"
-    echo "   - Set LLM_MOCK_MODE=false in .env"
+    echo "2. Set LLM_MOCK_MODE=false in .env"
     echo "3. Start the application:"
     echo "   - Backend: source venv/bin/activate && python main.py"
     echo "   - Frontend: npm run dev (in another terminal)"
