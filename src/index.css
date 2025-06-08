@@ -69,10 +69,6 @@ code {
   @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg shadow-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-transparent transition-all duration-200;
 }
 
-.select-field {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white;
-}
-
 /* File Upload Styles */
 .file-upload-area {
   @apply border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors duration-200;
