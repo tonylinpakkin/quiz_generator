@@ -32,14 +32,19 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api", tags=["upload"])
 app.include_router(quiz.router, prefix="/api", tags=["quiz"])
 
-# Serve static files from public directory if it exists
-if os.path.exists("public"):
+# Serve static files from the built frontend if available
+if os.path.exists("dist"):
+    app.mount("/static", StaticFiles(directory="dist"), name="static")
+elif os.path.exists("public"):
     app.mount("/static", StaticFiles(directory="public"), name="static")
 
 @app.get("/")
 async def serve_frontend():
     """Serve the React frontend"""
-    # Try to serve from public directory first, fallback to simple HTML
+    # Serve built frontend if available
+    if os.path.exists("dist/index.html"):
+        return FileResponse("dist/index.html")
+    # Fallback to the development public directory
     if os.path.exists("public/index.html"):
         return FileResponse("public/index.html")
     else:
@@ -91,6 +96,8 @@ async def serve_frontend():
 @app.get("/quiz-viewer.html")
 async def serve_quiz_viewer():
     """Serve the quiz viewer page"""
+    if os.path.exists("dist/quiz-viewer.html"):
+        return FileResponse("dist/quiz-viewer.html")
     if os.path.exists("public/quiz-viewer.html"):
         return FileResponse("public/quiz-viewer.html")
     else:
