@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FileInfo, QuizGenerationRequest } from '../types';
+import LoadingSpinner from './LoadingSpinner';
 
 interface FileUploadProps {
   onFileUpload: (file: File) => Promise<void>;
@@ -111,11 +112,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-    if (isLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
-        <span className="text-lg font-medium text-gray-700">Generating quiz...</span>
+        <LoadingSpinner message="Generating quiz..." />
       </div>
     );
   }
@@ -295,19 +295,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-interface LoadingSpinnerProps {
-  message: string;
-}
-
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
-  return (
-    <div className="flex items-center justify-center space-x-2">
-      <div className="spinner"></div>
-      <p className="text-lg font-medium text-gray-800">{message}</p>
     </div>
   );
 };
