@@ -115,15 +115,28 @@ setup_python_env() {
 
 # Install Node.js dependencies
 setup_node_env() {
+    print_status "Setting up Node.js environment..."
+
+    if [ ! -f package.json ]; then
+        print_status "Initializing npm project..."
+        npm init -y >/dev/null 2>&1
+        print_success "npm project initialized"
+    else
+        print_warning "package.json already exists, skipping npm init"
+    fi
+
     print_status "Installing Node.js dependencies..."
-    
     npm install react react-dom
     npm install --save-dev @types/react @types/react-dom
     npm install --save-dev @vitejs/plugin-react vite typescript
     npm install axios
     npm install --save-dev tailwindcss postcss autoprefixer
     npm install --save-dev @types/node
-    
+
+    # Ensure build scripts exist
+    print_status "Configuring npm scripts..."
+    npm pkg set scripts.dev="vite" scripts.build="vite build" scripts.preview="vite preview"
+
     print_success "Node.js dependencies installed"
 }
 
