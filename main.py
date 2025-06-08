@@ -117,7 +117,7 @@ async def llm_status():
             "model": "Mock Generator"
         }
     
-    # Check Gemini as fallback
+    # Check Gemini service
     if client.use_gemini:
         try:
             gemini_client = get_gemini_client()
@@ -139,26 +139,21 @@ async def llm_status():
                     "model": gemini_client.model_name
                 }
         except Exception as gemini_error:
-            pass  # Try Ollama as fallback
-    
-    # Check Ollama as fallback
-    try:
-        await client._check_ollama_health()
-        return {
-            "mode": "real",
-            "status": "ready", 
-            "message": f"Ollama is available with model {client.model_name}",
-            "provider": "ollama",
-            "model": client.model_name
-        }
-    except Exception as e:
-        return {
-            "mode": "real",
-            "status": "error",
-            "message": f"No AI services available. Gemini: token needed, Ollama: {str(e)}",
-            "provider": "none",
-            "model": "none"
-        }
+            return {
+                "mode": "real",
+                "status": "error",
+                "message": f"Gemini check failed: {gemini_error}",
+                "provider": "gemini",
+                "model": gemini_client.model_name,
+            }
+
+    return {
+        "mode": "real",
+        "status": "error",
+        "message": "No AI services available",
+        "provider": "none",
+        "model": "none",
+    }
 
 # Add API endpoints for client-side storage
 from pydantic import BaseModel

@@ -1,14 +1,9 @@
-"""Local LLM client for quiz generation.
+"""Local LLM client for quiz generation."""
 
-Integrated with Ollama for real LLM calls.
-"""
-
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 import json
 import re
 import uuid
-import httpx
-import asyncio
 import os
 from app.models import QuizQuestion, QuestionType
 from app.gemini_client import get_gemini_client
@@ -20,10 +15,9 @@ class LLMClientError(Exception):
 
 
 class LocalLLMClient:
-    """Client for interfacing with local LLM (Ollama)"""
+    """Client for interfacing with a local LLM"""
 
     def __init__(self):
-        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
         self.model_name = os.getenv("LLM_MODEL", "llama3.2")
         self.timeout = int(os.getenv("LLM_TIMEOUT", "120"))
         self.mock_mode = os.getenv("LLM_MOCK_MODE", "false").lower() == "true"
@@ -60,91 +54,9 @@ class LocalLLMClient:
                     "All AI services are currently unavailable. Gemini failed to generate questions. Please try again in a few moments."
                 )
 
-        # Fallback to Ollama
-        try:
-            await self._check_ollama_health()
-            print(f"✅ Ollama is available at {self.ollama_url}")
-            return await self._generate_quiz_with_ollama(
-                text_content, num_questions, question_types, difficulty_level, focus_topics
-            )
-        except Exception as ollama_error:
-            print(f"⚠️ Ollama not available: {ollama_error}")
-            raise LLMClientError(
-                "All AI services are currently unavailable (Gemini had parsing issues and Ollama is not accessible). Please try again in a few moments or check your API configurations."
-            )
-
-    async def _check_ollama_health(self) -> None:
-        """Check if Ollama service is available and the model is accessible"""
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                # Check if Ollama is running
-                health_response = await client.get(f"{self.ollama_url}/api/tags")
-                health_response.raise_for_status()
-
-                # Check if our model is available
-                models_data = health_response.json()
-                available_models = [model["name"] for model in models_data.get("models", [])]
-
-                if self.model_name not in available_models:
-                    print(f"🔄 Model {self.model_name} not found. Available models: {available_models}")
-                    print(f"💡 You can install it with: ollama pull {self.model_name}")
-                    raise LLMClientError(f"Model {self.model_name} not available")
-
-        except httpx.ConnectError:
-            raise LLMClientError(f"Cannot connect to Ollama at {self.ollama_url}. Is Ollama running?")
-        except httpx.TimeoutException:
-            raise LLMClientError(f"Ollama health check timed out")
-        except Exception as e:
-            raise LLMClientError(f"Ollama health check failed: {str(e)}")
-
-    async def _generate_quiz_with_ollama(self, text_content: str, num_questions: int,
-                                       question_types: List[QuestionType],
-                                       difficulty_level: str,
-                                       focus_topics: List[str]) -> List[QuizQuestion]:
-        """Generate quiz using Ollama API"""
-
-        # Create prompt
-        prompt = self._create_quiz_prompt(
-            text_content, num_questions, question_types, difficulty_level, focus_topics
+        raise LLMClientError(
+            "All AI services are currently unavailable. Please try again in a few moments."
         )
-
-        print(f"🤖 Generating {num_questions} questions with {self.model_name}")
-
-        # Prepare request payload
-        payload = {
-            "model": self.model_name,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "num_predict": 2000
-            }
-        }
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            try:
-                response = await client.post(
-                    f"{self.ollama_url}/api/generate",
-                    json=payload
-                )
-                response.raise_for_status()
-
-                result = response.json()
-                response_text = result.get("response", "")
-
-                if not response_text:
-                    raise LLMClientError("Empty response from LLM")
-
-                print(f"📝 Received response from LLM, parsing questions...")
-                return self._parse_quiz_response(response_text)
-
-            except httpx.TimeoutException:
-                raise LLMClientError(f"Request to Ollama timed out after {self.timeout} seconds")
-            except httpx.HTTPStatusError as e:
-                raise LLMClientError(f"HTTP error from Ollama: {e.response.status_code}")
-            except Exception as e:
-                raise LLMClientError(f"Failed to generate quiz with Ollama: {str(e)}")
 
     def _create_quiz_prompt(self, text_content: str, num_questions: int,
                           question_types: List[QuestionType],
