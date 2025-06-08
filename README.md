@@ -63,6 +63,9 @@ After the script finishes, review the generated `.env` file and set `LLM_MOCK_MO
    ```bash
    npm run dev
    ```
+   Make sure you run this command from the project root where `package.json`
+   resides, otherwise npm will output an `ENOENT` error about a missing
+   `package.json`.
 
 3. Open <http://localhost:5000> in your browser.
 
