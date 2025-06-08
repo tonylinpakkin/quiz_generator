@@ -123,7 +123,7 @@ class FileParser:
             # Clean up the text
             text_content = FileParser._clean_text(text_content)
             word_count = len(text_content.split())
-            
+
             if not text_content.strip():
                 raise FileParsingError("No readable text found in PDF")
             

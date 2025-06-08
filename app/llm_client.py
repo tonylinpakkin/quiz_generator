@@ -11,7 +11,6 @@ import httpx
 import asyncio
 import os
 from app.models import QuizQuestion, QuestionType
-from app.huggingface_client import get_huggingface_client
 from app.gemini_client import get_gemini_client
 
 
@@ -28,7 +27,6 @@ class LocalLLMClient:
         self.model_name = os.getenv("LLM_MODEL", "llama3.2")
         self.timeout = int(os.getenv("LLM_TIMEOUT", "120"))
         self.mock_mode = os.getenv("LLM_MOCK_MODE", "false").lower() == "true"
-        self.use_huggingface = os.getenv("USE_HUGGINGFACE", "true").lower() == "true"
         self.use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
 
     async def generate_quiz(self, text_content: str, num_questions: int = 5, 
@@ -62,17 +60,6 @@ class LocalLLMClient:
                     "All AI services are currently unavailable. Gemini failed to generate questions. Please try again in a few moments."
                 )
 
-        # Try Hugging Face as fallback
-        if self.use_huggingface:
-            try:
-                hf_client = get_huggingface_client()
-                return await hf_client.generate_quiz(
-                    text_content, num_questions, question_types, difficulty_level, focus_topics
-                )
-            except Exception as hf_error:
-                print(f"⚠️ Hugging Face failed: {hf_error}")
-                print(f"🔄 Trying Ollama as fallback...")
-
         # Fallback to Ollama
         try:
             await self._check_ollama_health()
@@ -83,7 +70,7 @@ class LocalLLMClient:
         except Exception as ollama_error:
             print(f"⚠️ Ollama not available: {ollama_error}")
             raise LLMClientError(
-                "All AI services are currently unavailable (Gemini had parsing issues, Hugging Face and Ollama are not accessible). Please try again in a few moments or check your API configurations."
+                "All AI services are currently unavailable (Gemini had parsing issues and Ollama is not accessible). Please try again in a few moments or check your API configurations."
             )
 
     async def _check_ollama_health(self) -> None:
